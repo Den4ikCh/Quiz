@@ -3,6 +3,7 @@ using System.Collections;
 using System.Linq;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class QuizQuestions : MonoBehaviour
@@ -25,8 +26,14 @@ public class QuizQuestions : MonoBehaviour
     [SerializeField] Button[] buttons;
     [SerializeField] Button reload;
     [SerializeField] Sprite[] sprites;
+    [SerializeField] Image[] images;
+    [SerializeField] TextMeshProUGUI[] texts;
+    [SerializeField] Image score;
+    [SerializeField] Button exit;
+    [SerializeField] TextMeshProUGUI timer;
     private int index;
-    private int correctAnswers;
+    private int nowScore;
+    private float Timer;
 
     private void Awake()
     {
@@ -36,9 +43,17 @@ public class QuizQuestions : MonoBehaviour
         buttons[0].GetComponentInChildren<TextMeshProUGUI>().enabled = true;
     }
 
+    void Update()
+    {
+        if (Timer >= 0) Timer += Time.deltaTime;
+        timer.text = (10 - (int)Timer).ToString();
+        if (Timer >= 10f) StartCoroutine(OffButtons());
+    }
+
     public void SetQuestion(int i)
     {
         question.text = questions[i].name;
+        Timer = 0;
         for (int j = 0; j < buttons.Length; j++)
         {
             buttons[j].image.sprite = sprites[0];
@@ -48,72 +63,119 @@ public class QuizQuestions : MonoBehaviour
 
     void PrintResults()
     {
-        for (int j = 0; j < buttons.Length; j++)
+        for (int i = 0; i < buttons.Length; i++)
         {
-            buttons[j].GetComponentInChildren<TextMeshProUGUI>().text = "";
-            buttons[j].GetComponent<Image>().enabled = false;
-            buttons[j].enabled = false;
+            buttons[i].GetComponentInChildren<TextMeshProUGUI>().enabled = false;
+            buttons[i].GetComponent<Image>().enabled = false;
+            buttons[i].enabled = false;
         }
-        PlayerPrefs.SetString("Score", Convert.ToString(correctAnswers));
-        question.text = $"Верно {correctAnswers}/{questions.Length}";
-        reload.enabled = true;
-        reload.GetComponent<Image>().enabled = true;
-        reload.GetComponentInChildren<TextMeshProUGUI>().enabled = true;
+        exit.enabled = true;
+        exit.GetComponent<Image>().enabled = true;
+        exit.GetComponentInChildren<TextMeshProUGUI>().enabled = true;
+        if (PlayerPrefs.GetInt("Score") < nowScore)
+            PlayerPrefs.SetInt("Score", nowScore);
+        question.text = "";
+        score.enabled = false;
+        score.GetComponentInChildren<TextMeshProUGUI>().enabled = false;
+        for (int i = 0; i < 2; i++)
+        {
+            texts[i].enabled = true;
+            images[i].enabled = true;
+        }
+        images[0].GetComponentInChildren<TextMeshProUGUI>().enabled = true;
+        images[0].GetComponentInChildren<TextMeshProUGUI>().text = nowScore.ToString();
+        images[1].GetComponentInChildren<TextMeshProUGUI>().enabled = true;
+        images[1].GetComponentInChildren<TextMeshProUGUI>().text = PlayerPrefs.GetInt("Score").ToString();
     }
 
     public void Click0()
     {
-        if (questions[index].isTrue(questions[index].variants[0])) correctAnswers++;
+        if (questions[index].isTrue(questions[index].variants[0])) AddPoints();
         index++;
-        if (index < questions.Length)
-            StartCoroutine(SwitchColor(0));
-        else
-            PrintResults();
+        StartCoroutine(SwitchColor(0));
     }
 
     public void Click1()
     {
-        if (questions[index].isTrue(questions[index].variants[1])) correctAnswers++;
+        if (questions[index].isTrue(questions[index].variants[1])) AddPoints();
         index++;
-        if (index < questions.Length)
-            StartCoroutine(SwitchColor(1));
-        else
-            PrintResults();
+        StartCoroutine(SwitchColor(1));
     }
 
     public void Click2()
     {
-        if (questions[index].isTrue(questions[index].variants[2])) correctAnswers++;
+        if (questions[index].isTrue(questions[index].variants[2])) AddPoints();
         index++;
-        if (index < questions.Length)
-            StartCoroutine(SwitchColor(2));
-        else
-            PrintResults();
+        StartCoroutine(SwitchColor(2));
     }
 
     public void Click3()
     {
-        if (questions[index].isTrue(questions[index].variants[3])) correctAnswers++;
+        if (questions[index].isTrue(questions[index].variants[3])) AddPoints();
         index++;
-        if (index < questions.Length)
-            StartCoroutine(SwitchColor(3));
-        else
-            PrintResults();
+        StartCoroutine(SwitchColor(3));
     }
 
-    IEnumerator SwitchColor(int index)
+    public void Exit()
     {
-        buttons[index].image.sprite = sprites[1];
+        SceneManager.LoadScene(0);
+    }
+
+    void AddPoints()
+    {
+        if (Timer < 2f) nowScore += 100;
+        else nowScore += 100 - 10 * (int)Timer;
+    }
+
+    IEnumerator SwitchColor(int indexOfButton)
+    {
+        Timer = -1;
+        if (questions[index - 1].isTrue(questions[index - 1].variants[indexOfButton]))
+            buttons[indexOfButton].image.sprite = sprites[1];
+        else
+            buttons[indexOfButton].image.sprite = sprites[2];
         for (int i = 0; i < buttons.Length; i++)
         {
             buttons[i].enabled = false;
+            if (i != indexOfButton)
+                buttons[i].image.sprite = sprites[3];
         }
+        score.GetComponentInChildren<TextMeshProUGUI>().text = nowScore.ToString();
+        timer.enabled = false;
 
         yield return new WaitForSeconds(2f);
         for (int i = 0; i < buttons.Length; i++)
         {
             buttons[i].enabled = true;
         }
-        SetQuestion(index);
+        if (index < questions.Length)
+        {
+            SetQuestion(index);
+            timer.enabled = true;
+        }
+        else PrintResults();
+    }
+
+    IEnumerator OffButtons()
+    {
+        Timer = -1;
+        for (int i = 0; i < buttons.Length; i++)
+        {
+            buttons[i].enabled = false;
+            buttons[i].image.sprite = sprites[2];
+        }
+        timer.enabled = false;
+
+        yield return new WaitForSeconds(2f);
+        for (int i = 0; i < buttons.Length; i++)
+        {
+            buttons[i].enabled = true;
+        }
+        if (index < questions.Length)
+        { 
+            SetQuestion(index);
+            timer.enabled = true;
+        }
+        else PrintResults();
     }
 }
