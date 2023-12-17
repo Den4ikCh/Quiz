@@ -171,6 +171,7 @@ public class QuizQuestions : MonoBehaviour
         {
             buttons[i].enabled = true;
         }
+        index++;
         if (index < questions.Length)
         { 
             SetQuestion(index);
