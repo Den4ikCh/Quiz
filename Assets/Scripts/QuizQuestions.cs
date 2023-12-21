@@ -49,11 +49,16 @@ public class QuizQuestions : MonoBehaviour
         if (Timer >= 0) Timer += Time.deltaTime;
         timer.text = (20 - (int)Timer).ToString();
         if (Timer >= 20f) StartCoroutine(OffButtons());
-        if (Timer >= 10f && !sounds[2].isPlaying) sounds[2].Play();
+        if (Timer >= 10f && !sounds[2].isPlaying)
+        {
+            sounds[2].Play();
+            sounds[3].volume = 0.1f;
+        }
     }
 
     public void SetQuestion(int i)
     {
+        sounds[3].volume = 0.2f;
         question.text = questions[i].name;
         Timer = 0;
         for (int j = 0; j < buttons.Length; j++)
