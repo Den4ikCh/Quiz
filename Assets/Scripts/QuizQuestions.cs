@@ -31,6 +31,7 @@ public class QuizQuestions : MonoBehaviour
     [SerializeField] Image score;
     [SerializeField] Button exit;
     [SerializeField] TextMeshProUGUI timer;
+    [SerializeField] AudioSource[] sounds;
     private int index;
     private int nowScore;
     private float Timer;
@@ -46,8 +47,9 @@ public class QuizQuestions : MonoBehaviour
     void Update()
     {
         if (Timer >= 0) Timer += Time.deltaTime;
-        timer.text = (10 - (int)Timer).ToString();
-        if (Timer >= 10f) StartCoroutine(OffButtons());
+        timer.text = (20 - (int)Timer).ToString();
+        if (Timer >= 20f) StartCoroutine(OffButtons());
+        if (Timer >= 10f && !sounds[2].isPlaying) sounds[2].Play();
     }
 
     public void SetQuestion(int i)
@@ -123,8 +125,8 @@ public class QuizQuestions : MonoBehaviour
 
     void AddPoints()
     {
-        if (Timer < 2f) nowScore += 100;
-        else nowScore += 100 - 10 * (int)Timer;
+        if (Timer < 10f) nowScore += 100;
+        else nowScore += 100 - 10 * ((int)Timer - 10);
     }
 
     IEnumerator SwitchColor(int indexOfButton)
@@ -143,7 +145,17 @@ public class QuizQuestions : MonoBehaviour
         score.GetComponentInChildren<TextMeshProUGUI>().text = nowScore.ToString();
         timer.enabled = false;
 
-        yield return new WaitForSeconds(2f);
+        if (questions[index - 1].isTrue(questions[index - 1].variants[indexOfButton]))
+        {
+            sounds[0].Play();
+            yield return new WaitForSeconds(4f);
+        }
+        else
+        {
+            sounds[1].Play();
+            yield return new WaitForSeconds(2f);
+        }
+
         for (int i = 0; i < buttons.Length; i++)
         {
             buttons[i].enabled = true;
@@ -165,7 +177,8 @@ public class QuizQuestions : MonoBehaviour
             buttons[i].image.sprite = sprites[2];
         }
         timer.enabled = false;
-
+        
+        sounds[1].Play();
         yield return new WaitForSeconds(2f);
         for (int i = 0; i < buttons.Length; i++)
         {
