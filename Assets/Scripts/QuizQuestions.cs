@@ -148,14 +148,17 @@ public class QuizQuestions : MonoBehaviour
         if (questions[index - 1].isTrue(questions[index - 1].variants[indexOfButton]))
         {
             sounds[0].Play();
+            sounds[3].Pause();
             yield return new WaitForSeconds(4f);
         }
         else
         {
             sounds[1].Play();
+            sounds[3].Pause();
             yield return new WaitForSeconds(2f);
         }
 
+        sounds[3].Play();
         for (int i = 0; i < buttons.Length; i++)
         {
             buttons[i].enabled = true;
@@ -179,7 +182,9 @@ public class QuizQuestions : MonoBehaviour
         timer.enabled = false;
         
         sounds[1].Play();
+        sounds[3].Pause();
         yield return new WaitForSeconds(2f);
+        sounds[3].Play();
         for (int i = 0; i < buttons.Length; i++)
         {
             buttons[i].enabled = true;
