@@ -149,6 +149,7 @@ public class QuizQuestions : MonoBehaviour
         }
         score.GetComponentInChildren<TextMeshProUGUI>().text = nowScore.ToString();
         timer.enabled = false;
+        sounds[2].Stop();
 
         if (questions[index - 1].isTrue(questions[index - 1].variants[indexOfButton]))
         {
